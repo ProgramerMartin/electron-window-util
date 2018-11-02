@@ -6,7 +6,7 @@ const VueRouter = require('vue-router')
 const TWEEN = require('@tweenjs/tween.js')
 
 
-const windowUtil = remote.require('winUtil');
+const windowUtil = remote.require('electron-window-util');
 
 console.log(windowUtil)
 
