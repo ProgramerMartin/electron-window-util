@@ -1,12 +1,20 @@
 {
-  "name": "winUtil",
-  "version": "1.0.0",
+  "name": "electron-window-util",
+  "version": "1.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "electron",
+    "window"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@tweenjs/tween.js": "latest",
+    "vue-router": "latest",
+    "electron": "latest"
+  }
 }
