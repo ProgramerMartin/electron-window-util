@@ -1,6 +1,6 @@
 {
   "name": "electron-window-util",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,6 @@
   "license": "MIT",
   "dependencies": {
     "@tweenjs/tween.js": "latest",
-    "vue-router": "latest",
-    "electron": "latest"
+    "vue-router": "latest"
   }
 }
