@@ -1,52 +1,31 @@
 const events = require('events');
 const electron = require('electron');
 const {remote, ipcRenderer} = electron;
-
-const VueRouter = require('vue-router')
-const TWEEN = require('@tweenjs/tween.js')
-
+const TWEEN = require('./Tween')
 
 const windowUtil = remote.require('electron-window-util');
 
-console.log(windowUtil)
-
 class renderUtil {
   constructor() {
+    if (renderUtil.prototype.__eventBus === undefined) {
+      renderUtil.prototype.__eventBus = new events.EventEmitter();
+    }
+    this.eventBus = renderUtil.prototype.__eventBus;
     this.baseUrl = '';
     this.router = '';
     this.win = remote.getCurrentWindow();
     this.windowUtil = null;
-    this.eventBus = new events.EventEmitter();
     // console.log(remote.getCurrentWindow())
   }
 
-  init() {
-    let config = {}, router;
-    let args = [...arguments];
-    if (args.length === 1) {
-      if (args[0].constructor === Object) {
-        config = args[0];
-      } else if (args[0].constructor === VueRouter) {
-        router = args[0];
-      }
-    } else if (args.length === 2) {
-      if (args[0].constructor === Object && args[1].constructor === VueRouter) {
-        config = args[0];
-        router = args[1];
-      } else if (args[1].constructor === Object && args[0].constructor === VueRouter) {
-        config = args[1];
-        router = args[0];
-      }
-    }
+  init(config, router) {
     this.router = router;
     if (config.baseUrl) this.baseUrl = config.baseUrl;
     if (!this.windowUtil) {
-      config.eventBus = this.eventBus;
-      config.useRouter = !!router
+      config.useRouter = !!router;
       this.windowUtil = new windowUtil(config);
     }
     this.addEventListenerForWindow();
-    console.log('初始化', config, router)
   }
 
   addEventListenerForWindow() {
@@ -54,15 +33,15 @@ class renderUtil {
     ipcRenderer.on('_changeRouter', (event, arg) => {
       this.router.push(arg);
     });
-    // 监听路由变化
+    // 动画监听
     ipcRenderer.on('_animation', (event, animationConfig) => {
+      console.log('_animation')
       this.animation(animationConfig);
     });
   }
 
   animation(animationConfig) {
 
-    console.log('animationConfig', animationConfig)
     let animateId;
 
     function animate(time) {
@@ -71,7 +50,6 @@ class renderUtil {
     }
 
     TWEEN.removeAll();
-    let win = this.win;
     let tween = new TWEEN.Tween({
       x: animationConfig.fromConfig.x,
       y: animationConfig.fromConfig.y,
@@ -86,15 +64,15 @@ class renderUtil {
         height: animationConfig.toConfig.height,
         opacity: animationConfig.toConfig.opacity,
       }, animationConfig.time)
-      .onUpdate(function (a) {
+      .onUpdate(a => {
         console.log(
           parseInt(a.x), parseInt(a.y),
           parseInt(a.width), parseInt(a.height),
           a.opacity);
-        win.setPosition(parseInt(a.x), parseInt(a.y));
-        win.setSize(parseInt(a.width), parseInt(a.height));
-        win.setOpacity(a.opacity);
-      }).onComplete(function () {
+        this.win.setPosition(parseInt(a.x), parseInt(a.y));
+        this.win.setSize(parseInt(a.width), parseInt(a.height));
+        this.win.setOpacity(a.opacity);
+      }).onComplete(() => {
         cancelAnimationFrame(animateId);
       }).start();
     let graphs = animationConfig.graphs.split('.');
@@ -105,48 +83,61 @@ class renderUtil {
   openWin(option) {
     option = option || {};
     let win = this.createWin(option);
+    let winId = win.id;
     if (option.time) {
       setTimeout(() => {
         win.close();
-      }, option.time)
+      }, option.time);
     }
     win.show();
-    let winId = win.id;
-    return win;
+    return new Promise((resolve, reject) => {
+      // 监听关闭窗口前发送来的数据
+      ipcRenderer.once(`_closed${winId}`, (event, backMsg) => {
+        resolve(backMsg);
+      });
+    });
   }
 
-  closeWin() {
-    let args = [...arguments];
-    let winName = '';
-    let win;
-    if (!args.length) {
-      win = this.win;
-    } else if (args.length === 1) {
-      if (args[0].constructor === String) {
-        winName = args[0];
-      } else if (args[0].constructor === Array) {
+  closeWin(arg) {
+    if (!arg) {
+      this.win.close();
+    } else if (arg.constructor === String) {
+      let win = this.getWinByName(arg);
+      if (win) win.close();
+    } else if (arg.constructor === Object) {
 
-      } else if (args[0].constructor === Object) {
-        if (!args[0].hasOwnProperty('name')) return;
-        winName = args[0].name;
-        if (args[0].hasOwnProperty('data')) {
-          //返回数据
-        }
+      let winInfo = '';
+      if (arg.id) {
+        winInfo = this.getWinInfoById(arg.id);
+      } else if (arg.name) {
+        winInfo = this.getWinInfoByName(arg.name);
       } else {
-        win = args[0];
+        winInfo = this.getWinInfoById(this.win.id);
+      }
+      if (winInfo) {
+        //发送消息
+        winInfo.backMsg = arg.data;
+        //关闭窗口
+        let win = this.getWinById(winInfo.id);
+        if (win) win.close();
       }
     }
-
-    if (!win && winName) win = this.getWinByName(winName);
-    if (win) win.close();
   }
 
   getWinByName(winName) {
     return this.windowUtil.getWinByName(winName);
   }
 
-  getCurrentWin() {
-    return this.win;
+  getWinById(winId) {
+    return this.windowUtil.getWinById(winId);
+  }
+
+  getWinInfoByName(winName) {
+    return this.windowUtil.getWinInfoByName(winName);
+  }
+
+  getWinInfoById(winId) {
+    return this.windowUtil.getWinInfoById(winId);
   }
 
   getParameter() {
@@ -162,12 +153,28 @@ class renderUtil {
 
   createWin(option) {
     option.windowConfig = option.windowConfig || {animation: {}};
+    option.windowConfig.fromWinId = this.win.id;
 
     return this.windowUtil.getFreeWindow(option)
 
   }
 }
 
+export default (Vue, option) => {
+  let router = option.router;
+  let config = {
+    baseUrl: option.baseUrl,
+    baseWindowConfig: option.baseWindowConfig,
+    freeWindowNum: option.freeWindowNum,
+    useRouter: !!router,
+  };
+
+  let Win = new renderUtil();
+
+  Win.init(config, router);
+
+  Vue.prototype.$Win = Win;
+}
 
 // module.exports = new renderUtil();
-export default new renderUtil();
+// export default new renderUtil();

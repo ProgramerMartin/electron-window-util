@@ -4,7 +4,7 @@ const {BrowserWindow, screen} = electron;
 
 class windowUtil {
   constructor(config) {
-    this.eventBus = config.eventBus;
+
     this.freeWindowNum = config.freeWindowNum || 1;
     this.baseUrl = config.baseUrl || '';
     // this.url = '';
@@ -24,6 +24,8 @@ class windowUtil {
       show: false,
     };
     this._windowList = []; // 窗口容器
+
+
     // 单例模式
     if (windowUtil.prototype.__Instance === undefined) {
       windowUtil.prototype.__Instance = this;
@@ -54,12 +56,19 @@ class windowUtil {
       router: '',//router
       sendMsg: '',//打开窗口时传递的数据
       backMsg: '',//关闭窗口时传递的数据
-      fromId: '',//来源窗口id
+      fromWinId: '',//来源窗口id
       reuse: false,//是否复用
     });
     let winId = win.id;
 
     win.on('closed', () => {// 先push出数组
+
+      let backMsg = '';
+      let winInfo = this.getWinInfoById(winId);
+      if (winInfo) backMsg = winInfo.backMsg;
+
+      this.sendMsg(winInfo.fromWinId, `_closed${winId}`, backMsg);
+
       this._windowList = this._windowList.filter(item => item.id !== winId || item.reuse)
     });
 
@@ -73,6 +82,7 @@ class windowUtil {
     let freeWindow, freeWindowInfo;
     if (option.windowConfig.name) {
       let winInfo = this._windowList.find(item => item.name === option.windowConfig.name);
+
       if (winInfo) {
         freeWindow = BrowserWindow.fromId(winInfo.id);
         freeWindowInfo = winInfo;
@@ -138,17 +148,17 @@ class windowUtil {
     let url = config.url;
     let router = config.router;
     if (win.webContents.isLoading()) {
-      win.webContents.once('did-finish-load', function () {
-        if (this.useRouter) win.webContents.send('_changeRouter', router);
+      win.webContents.once('did-finish-load', () => {
+        if (this.useRouter) this.sendMsg(win.id, '_changeRouter', router);
       });
     } else {
-      if (this.useRouter) win.webContents.send('_changeRouter', router);
+      if (this.useRouter) this.sendMsg(win.id, '_changeRouter', router);
     }
   }
 
   animation(win, animationConfig) {
     if (util.isObjectValueEqual(animationConfig.fromConfig, animationConfig.toConfig)) return;
-    win.webContents.send('_animation', animationConfig);
+    this.sendMsg(win.id, '_animation', animationConfig);
   }
 
   /*
@@ -254,8 +264,8 @@ class windowUtil {
     // 没有使用的窗口并且不是复用的窗口
     let winInfo = this._windowList.find(row => row.isUse === false && !row.reuse)
     if (!winInfo) {
-      let win = this.creatFreeWindow()
-      return this._windowList.find(row => row.id === win.id)
+      let win = this.creatFreeWindow();
+      return this._windowList.find(row => row.id === win.id);
     }
     return winInfo
   }
@@ -269,7 +279,7 @@ class windowUtil {
     freeWindowInfo.sendMsg = option.windowConfig.data
     freeWindowInfo.isUse = true
     freeWindowInfo.name = option.windowConfig.name
-    freeWindowInfo.fromId = option.windowConfig.fromWinId
+    freeWindowInfo.fromWinId = option.windowConfig.fromWinId
     freeWindowInfo.reuse = option.windowConfig.reuse || false
     this.setUseWindow(freeWindowInfo)
   }
@@ -292,8 +302,28 @@ class windowUtil {
     return
   }
 
+  getWinById(winId) {
+    if (!winId) return
+    return BrowserWindow.fromId(winId);
+  }
+
+  getWinInfoByName(WinName) {
+    if (!WinName) return
+    return this._windowList.find(item => item.name === WinName);
+  }
+
+  getWinInfoById(winId) {
+    if (!winId) return
+    return this._windowList.find(item => item.id === winId);
+  }
+
   getScreenInfo() {
     return screen.getPrimaryDisplay();
+  }
+
+  sendMsg(winId, eventName, arg) {
+    let win = BrowserWindow.fromId(winId);
+    if (win) win.webContents.send(eventName, arg);
   }
 }
 

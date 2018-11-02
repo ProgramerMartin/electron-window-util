@@ -13,7 +13,5 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@tweenjs/tween.js": "latest",
-    "vue-router": "latest"
   }
 }
