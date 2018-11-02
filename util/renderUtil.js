@@ -82,12 +82,15 @@ class renderUtil {
 
   openWin(option) {
     option = option || {};
+    option.windowConfig = option.windowConfig || {animation: {}};
+    option.windowConfig.fromWinId = this.win.id;
+
     let win = this.createWin(option);
     let winId = win.id;
-    if (option.time) {
+    if (option.windowConfig.time) {
       setTimeout(() => {
         win.close();
-      }, option.time);
+      }, option.windowConfig.time);
     }
     win.show();
     return new Promise((resolve, reject) => {
@@ -152,9 +155,9 @@ class renderUtil {
   }
 
   createWin(option) {
+    option = option || {};
     option.windowConfig = option.windowConfig || {animation: {}};
     option.windowConfig.fromWinId = this.win.id;
-
     return this.windowUtil.getFreeWindow(option)
 
   }

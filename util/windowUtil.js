@@ -147,13 +147,14 @@ class windowUtil {
   windowRouterChange(win, config) {
     let url = config.url;
     let router = config.router;
-    if (win.webContents.isLoading()) {
-      win.webContents.once('did-finish-load', () => {
-        if (this.useRouter) this.sendMsg(win.id, '_changeRouter', router);
-      });
-    } else {
-      if (this.useRouter) this.sendMsg(win.id, '_changeRouter', router);
-    }
+    if (this.useRouter) this.sendMsg(win.id, '_changeRouter', router);
+    // if (win.webContents.isLoading()) {
+    //   win.webContents.once('did-finish-load', () => {
+    //     if (this.useRouter) this.sendMsg(win.id, '_changeRouter', router);
+    //   });
+    // } else {
+    //   if (this.useRouter) this.sendMsg(win.id, '_changeRouter', router);
+    // }
   }
 
   animation(win, animationConfig) {
