@@ -1,9 +1,13 @@
 electron的多窗口模块，可以快速的打开多个electron窗口
 
-#安装
+#### [模块github地址](https://github.com/zsj975516/electron-window-util)
+
+### 安装
+使用npm安装模块
 ```
 npm install electron-window-util --save
 ```
+### 使用
 ```
 import Win from 'electron-window-util'
 
@@ -19,9 +23,7 @@ Vue.use(Win, {
   freeWindowNum:''//空闲窗口数量
 });
 ```
-
-#使用
-##打开新窗口
+#### 打开新窗口
 
 ```
 /** 支持参数
@@ -72,7 +74,8 @@ Vue.use(Win, {
         });
     console.log(res);//此res为该打开窗口关闭时传来的数据
 ```
-##关闭窗口
+
+#### 关闭窗口
 ```
 let pama={
     name:'', //需要关闭窗口的name
@@ -82,7 +85,9 @@ let pama={
 }
 this.$Win.closeWin(pama);
 ```
-##获取打开窗口时传递的数据
+
+#### 获取打开窗口时传递的数据
 ```
 this.$Win.getParameter();
 ```
+
