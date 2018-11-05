@@ -34,6 +34,23 @@ class windowUtil {
     return windowUtil.prototype.__Instance;
   }
 
+  updateWindowList(arg) {
+    let win = this._windowList.find(item => item.id === arg.id);
+    if (win) return;
+    // 设置传参
+    this._windowList.push({
+      id: arg.id,//窗口id
+      name: '',//窗口name
+      isUse: true,//是否正在使用
+      url: '',//url
+      router: '',//router
+      sendMsg: '',//打开窗口时传递的数据
+      backMsg: '',//关闭窗口时传递的数据
+      fromWinId: '',//来源窗口id
+      reuse: false,//是否复用
+    });
+  }
+
   checkFreeWindow() {
     // 如果有缓存，查找空余窗口是否足够，不足的话创建到给定水平
     let notUseWindowNum = this._windowList.filter(win => !win.isUse).length;
@@ -67,7 +84,7 @@ class windowUtil {
       let winInfo = this.getWinInfoById(winId);
       if (winInfo) backMsg = winInfo.backMsg;
 
-      this.sendMsg(winInfo.fromWinId, `_closed${winId}`, backMsg);
+      this.sendById(winInfo.fromWinId, `_closed${winId}`, backMsg);
 
       this._windowList = this._windowList.filter(item => item.id !== winId || item.reuse)
     });
@@ -147,7 +164,7 @@ class windowUtil {
   windowRouterChange(win, config) {
     let url = config.url;
     let router = config.router;
-    if (this.useRouter) this.sendMsg(win.id, '_changeRouter', router);
+    if (this.useRouter) this.sendById(win.id, '_changeRouter', router);
     // if (win.webContents.isLoading()) {
     //   win.webContents.once('did-finish-load', () => {
     //     if (this.useRouter) this.sendMsg(win.id, '_changeRouter', router);
@@ -159,7 +176,7 @@ class windowUtil {
 
   animation(win, animationConfig) {
     if (util.isObjectValueEqual(animationConfig.fromConfig, animationConfig.toConfig)) return;
-    this.sendMsg(win.id, '_animation', animationConfig);
+    this.sendById(win.id, '_animation', animationConfig);
   }
 
   /*
@@ -322,9 +339,50 @@ class windowUtil {
     return screen.getPrimaryDisplay();
   }
 
-  sendMsg(winId, eventName, arg) {
+  send(eventName, arg) {
+    if (!arg) throw new Error('参数是必须的');
+    if (arg.constructor !== Object) throw new Error("参数必须为对象");
+    if (!arg.data) throw new Error('参数中必须包含要发送的消息');
+
+    let msg = {
+      winInfo: {},
+      data: arg.data
+    };
+
+    if (arg.fromWinId) {
+      let winInfo = this.getWinInfoById(arg.fromWinId);
+      if (winInfo) msg.winInfo.name = winInfo.name;
+      msg.winInfo.id = arg.fromWinId;
+    }
+
+    if (arg.id) {
+      return this.sendById(arg.id, eventName, msg);
+    }
+    else if (arg.name) {
+      return this.sendByName(arg.name, eventName, msg);
+    }
+    else {
+      this._windowList.forEach(item => {
+        if (item.id === arg.fromWinId) return;
+        this.sendById(item.id, eventName, msg);
+      });
+      return true;
+      //向所有窗口发送数据，除了本窗口
+    }
+  }
+
+
+  sendById(winId, eventName, arg) {
     let win = BrowserWindow.fromId(winId);
-    if (win) win.webContents.send(eventName, arg);
+    if (!win) return false;
+    win.webContents.send(eventName, arg);
+    return true;
+  }
+
+  sendByName(winName, eventName, arg) {
+    let winInfo = this.getWinInfoByName(winName);
+    if (!winInfo) return false;
+    return this.sendById(winInfo.id, eventName, arg);
   }
 }
 

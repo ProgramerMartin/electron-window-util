@@ -7,10 +7,7 @@ const windowUtil = remote.require('electron-window-util');
 
 class renderUtil {
   constructor() {
-    if (renderUtil.prototype.__eventBus === undefined) {
-      renderUtil.prototype.__eventBus = new events.EventEmitter();
-    }
-    this.eventBus = renderUtil.prototype.__eventBus;
+    this.eventBus = new events.EventEmitter();
     this.baseUrl = '';
     this.router = '';
     this.win = remote.getCurrentWindow();
@@ -26,6 +23,8 @@ class renderUtil {
       this.windowUtil = new windowUtil(config);
     }
     this.addEventListenerForWindow();
+    this.windowUtil.updateWindowList({id: this.win.id});
+    console.log('当前窗口个数', this.windowUtil._windowList.length - 1)
   }
 
   addEventListenerForWindow() {
@@ -161,6 +160,37 @@ class renderUtil {
     return this.windowUtil.getFreeWindow(option)
 
   }
+
+  send(eventName, arg) {
+    arg = arg || {};
+    arg.fromWinId = this.win.id;
+    return this.windowUtil.send(eventName, arg);
+  }
+
+  on(eventName, listener) {
+    ipcRenderer.on(eventName, (event, arg) => {
+      listener(arg.data, arg.winInfo);
+    });
+  }
+
+  once(eventName, listener) {
+    ipcRenderer.once(eventName, (event, arg) => {
+      listener(arg.data, arg.winInfo);
+    });
+  }
+
+  off(eventName, listener) {
+    ipcRenderer.removeListener(eventName, listener)
+  }
+
+  removeListener(eventName, listener) {
+    ipcRenderer.removeListener(eventName, listener)
+  }
+
+  removeAllListeners(eventName) {
+    ipcRenderer.removeAllListeners(eventName)
+  }
+
 }
 
 export default (Vue, option) => {
