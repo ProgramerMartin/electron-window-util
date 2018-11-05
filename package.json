@@ -1,6 +1,6 @@
 {
   "name": "electron-window-util",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,7 @@
     "electron",
     "window"
   ],
+  "repository":"https://github.com/zsj975516/electron-window-util",
   "author": "",
   "license": "MIT",
   "dependencies": {
