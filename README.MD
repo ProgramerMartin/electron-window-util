@@ -1,4 +1,6 @@
 electron的多窗口模块，可以快速的打开多个electron窗口
+
+#安装
 ```
 npm install electron-window-util --save
 ```
@@ -16,4 +18,71 @@ Vue.use(Win, {
   router:'',//选填 vue-router
   freeWindowNum:''//空闲窗口数量
 });
+```
+
+#使用
+##打开新窗口
+
+```
+/** 支持参数
+ * width 窗口宽度
+ * height 窗口高度
+ * x 窗口x坐标
+ * y 窗口y坐标
+ * resizable 是否可调节大小
+ * movable 是否可移动
+ * minimizable 是否可最小化
+ * maximizable 是否可最大化
+ * closable 是否可关闭
+ * focusable 是否可聚焦
+ * alwaysOnTop 是否置顶
+ * fullscreen 是否全屏
+ * fullscreenable 是否可全屏
+ * simpleFullscreen 
+ * skipTaskbar 是否不在任务栏显示
+ * kiosk 是否进入kiosk模式
+ * title 窗口标题
+ * icon 窗口图标
+ * opacity 窗口透明度
+ *
+ * windowConfig：{} //其他的一些配置
+ */
+  let res=await this.$Win.openWin({
+          width: 200,
+          height: 200,
+          x: 0,
+          y: 0,
+          windowConfig: {
+            router: '/landing',//如果使用路由，则在此处填写新窗口的路由
+            name: 'hover',//窗口名称
+            data: '鼠标悬浮',//往新窗口传递的数据
+            animation: { //打开新窗口时的动画
+              fromConfig: { //动画开始时的配置
+                // x: 0, //动画开始时的窗口x坐标
+                // y: 0, //动画开始时的窗口y坐标
+                // width: 0, //动画开始时的窗口宽度
+                // height: 0, //动画开始时的窗口高度
+                // opacity: 0, //动画开始时的窗口透明度
+              }, 
+              time: 1000, // 动画持续时间
+              graphs: 'Quartic.InOut' // 动画过度曲线
+            },
+            //time:1000, //窗口自动关闭时间，默认不关闭
+          }
+        });
+    console.log(res);//此res为该打开窗口关闭时传来的数据
+```
+##关闭窗口
+```
+let pama={
+    name:'', //需要关闭窗口的name
+    id:'', //需要关闭窗口的id
+    //id和name,二选一，若都没有则关闭调用此方法的窗口
+    data:'窗口关闭时返回的数据',//窗口关闭时返回的数据
+}
+this.$Win.closeWin(pama);
+```
+##获取打开窗口时传递的数据
+```
+this.$Win.getParameter();
 ```
