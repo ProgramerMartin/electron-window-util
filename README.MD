@@ -1,5 +1,8 @@
 electron的多窗口模块，可以快速的打开多个electron窗口
-
+正在完善中，方法可能会修改（废弃与新增）  
+已知bug：  
+ 1、窗口打开过多会造成新窗口vue不加载，初步估计可能和vue相关  
+ 2、窗口间通信，事件不能注销
 #### [模块github地址](https://github.com/zsj975516/electron-window-util)
 
 ### 安装
