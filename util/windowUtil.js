@@ -86,7 +86,7 @@ class windowUtil {
 
       this.sendById(winInfo.fromWinId, `_closed${winId}`, backMsg);
 
-      this._windowList = this._windowList.filter(item => item.id !== winId || item.reuse)
+      this._windowList = this._windowList.filter(item => item.id !== winId);
     });
 
     win.loadURL(this.baseUrl);
@@ -371,7 +371,6 @@ class windowUtil {
     }
   }
 
-
   sendById(winId, eventName, arg) {
     let win = BrowserWindow.fromId(winId);
     if (!win) return false;
@@ -383,6 +382,48 @@ class windowUtil {
     let winInfo = this.getWinInfoByName(winName);
     if (!winInfo) return false;
     return this.sendById(winInfo.id, eventName, arg);
+  }
+
+  /**
+   * 关闭win
+   * @param win
+   */
+  exitWin(win) {
+    win.close();
+  }
+
+  /**
+   * 隐藏win
+   * @param win
+   */
+  hideWin(win) {
+    let winInfo = this.getWinInfoById(win.id);
+    this.sendById(winInfo.fromWinId, `_closed${win.id}`, '');
+    win.hide();
+  }
+
+  /**
+   * 通过id关闭win
+   * @param id
+   */
+  closeWinByWinId(id) {
+    let winInfo = this.getWinInfoById(id);
+    if (!winInfo) return;
+    let win = BrowserWindow.fromId(winInfo.id);
+    if (winInfo.reuse) this.hideWin(win);
+    else this.exitWin(win);
+  }
+
+  /**
+   * 通过name关闭win
+   * @param name
+   */
+  closeWinByWinName(name) {
+    let winInfo = this.getWinInfoByName(name);
+    if (!winInfo) return;
+    let win = BrowserWindow.fromId(winInfo.id);
+    if (winInfo.reuse) this.hideWin(win);
+    else this.exitWin(win);
   }
 }
 

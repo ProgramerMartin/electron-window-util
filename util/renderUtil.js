@@ -88,7 +88,7 @@ class renderUtil {
     let winId = win.id;
     if (option.windowConfig.time) {
       setTimeout(() => {
-        win.close();
+        this.windowUtil.closeWinByWinId(winId);
       }, option.windowConfig.time);
     }
     win.show();
@@ -102,10 +102,10 @@ class renderUtil {
 
   closeWin(arg) {
     if (!arg) {
-      this.win.close();
+      this.windowUtil.closeWinByWinId(this.win.id);
     } else if (arg.constructor === String) {
       let win = this.getWinByName(arg);
-      if (win) win.close();
+      if (win) this.windowUtil.closeWinByWinId(win.id);
     } else if (arg.constructor === Object) {
 
       let winInfo = '';
@@ -120,8 +120,9 @@ class renderUtil {
         //发送消息
         winInfo.backMsg = arg.data;
         //关闭窗口
-        let win = this.getWinById(winInfo.id);
-        if (win) win.close();
+        this.windowUtil.closeWinByWinId(winInfo.id)
+        // let win = this.getWinById(winInfo.id);
+        // if (win) win.close();
       }
     }
   }
@@ -189,6 +190,18 @@ class renderUtil {
 
   removeAllListeners(eventName) {
     ipcRenderer.removeAllListeners(eventName)
+  }
+
+  get winInfo() {
+    return this.win.getBounds();
+  }
+
+  get screenInfo() {
+    return this.windowUtil.getScreenInfo();
+  }
+
+  get allWin() {
+    return this.windowUtil._windowList;
   }
 
 }
