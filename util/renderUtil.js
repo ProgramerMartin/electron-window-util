@@ -170,7 +170,8 @@ class renderUtil {
 
   on(eventName, listener) {
     ipcRenderer.on(eventName, (event, arg) => {
-      listener(arg.data, arg.winInfo);
+      if (arg && arg.data) listener(arg.data, arg.winInfo);
+      else listener(event, arg);
     });
   }
 
