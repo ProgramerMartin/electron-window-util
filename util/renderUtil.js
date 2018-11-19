@@ -1,4 +1,4 @@
-Object.defineProperty(exports, "__esModule", { value: true });
+Object.defineProperty(exports, "__esModule", {value: true});
 const events = require('events');
 const electron = require('electron');
 const {remote, ipcRenderer} = electron;
@@ -194,6 +194,10 @@ class renderUtil {
     ipcRenderer.removeAllListeners(eventName)
   }
 
+  isOpen(winName) {
+    return this.windowUtil.isOpen(winName);
+  }
+
   get winInfo() {
     return this.win.getBounds();
   }
@@ -207,7 +211,8 @@ class renderUtil {
   }
 
 }
-exports.default =  (Vue, option) => {
+
+exports.default = (Vue, option) => {
 // export default (Vue, option) => {
   let router = option.router;
   let config = {

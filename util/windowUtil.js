@@ -425,6 +425,13 @@ class windowUtil {
     if (winInfo.reuse) this.hideWin(win);
     else this.exitWin(win);
   }
+
+  isOpen(winName){
+    if (!winName) return false
+    let winInfo = this.getWinInfoByName(winName);
+    if (!winInfo) return false;
+    return winInfo.isUse;
+  }
 }
 
 
