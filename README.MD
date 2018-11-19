@@ -4,6 +4,8 @@ electron的多窗口模块，可以快速的打开多个electron窗口
  1、窗口打开过多会造成新窗口vue不加载，初步估计可能和vue相关  
  2、窗口间通信，事件不能注销
 #### [模块github地址](https://github.com/zsj975516/electron-window-util)
+#### [模块demo地址](https://github.com/zsj975516/electron-window-util-demo)
+#### [问题反馈](https://github.com/zsj975516/electron-window-util/issues)
 
 ### 安装
 使用npm安装模块
@@ -15,7 +17,7 @@ npm install electron-window-util --save
 import Win from 'electron-window-util'
 
 Vue.use(Win, {
-  baseUrl:'',//基础url，空闲窗口预先加载的url
+  baseUrl:'',//必填，基础url，空闲窗口预先加载的url
   // baseWindowConfig为创建窗体的初始参数，该参数与new BrowserWindow参数相同
   baseWindowConfig: {
     // frame: false,
@@ -92,5 +94,36 @@ this.$Win.closeWin(pama);
 #### 获取打开窗口时传递的数据
 ```
 this.$Win.getParameter();
+```
+
+####判断窗口是否打开
+```
+let isOpen=this.$Win.isOpen("win1");
+//true 已打开，false未打开
+```
+
+
+####窗口监听事件
+```
+  this.$Win.on('_sendMsg', (data, winInfo)=>{})
+  //data，对方发来的数据
+  //winInfo，发送消息的窗口信息
+```
+
+####窗口发送事件
+```
+  this.$Win.send('_sendMsg', {
+           id: '',//接收窗口的id
+           name: winName,//接收窗口的name
+           //若id和name都不存在，则发送给除了自己的所有窗口
+           data: this.msg,//发送的数据
+         });
+```
+####窗口注销事件
+貌似有点问题，注销不了
+```
+  this.$Win.off(eventName, listener);
+  this.$Win.removeListener(eventName, listener);
+  this.$Win.removeAllListeners(eventName);
 ```
 
