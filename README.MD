@@ -96,21 +96,21 @@ this.$Win.closeWin(pama);
 this.$Win.getParameter();
 ```
 
-####判断窗口是否打开
+####  判断窗口是否打开
 ```
 let isOpen=this.$Win.isOpen("win1");
 //true 已打开，false未打开
 ```
 
 
-####窗口监听事件
+####  窗口监听事件
 ```
   this.$Win.on('_sendMsg', (data, winInfo)=>{})
   //data，对方发来的数据
   //winInfo，发送消息的窗口信息
 ```
 
-####窗口发送事件
+####  窗口发送事件
 ```
   this.$Win.send('_sendMsg', {
            id: '',//接收窗口的id
@@ -119,7 +119,7 @@ let isOpen=this.$Win.isOpen("win1");
            data: this.msg,//发送的数据
          });
 ```
-####窗口注销事件
+####  窗口注销事件
 貌似有点问题，注销不了
 ```
   this.$Win.off(eventName, listener);
