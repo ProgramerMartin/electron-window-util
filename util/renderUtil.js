@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 const events = require('events');
 const electron = require('electron');
 const {remote, ipcRenderer} = electron;
@@ -206,8 +207,8 @@ class renderUtil {
   }
 
 }
-
-export default (Vue, option) => {
+exports.default =  (Vue, option) => {
+// export default (Vue, option) => {
   let router = option.router;
   let config = {
     baseUrl: option.baseUrl,
