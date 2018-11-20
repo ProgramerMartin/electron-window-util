@@ -10,120 +10,146 @@ electron的多窗口模块，可以快速的打开多个electron窗口
 ### 安装
 使用npm安装模块
 ```
-npm install electron-window-util --save
-```
-### 使用
-```
-import Win from 'electron-window-util'
+//安装模块
+npm i electron-window-util
 
-Vue.use(Win, {
-  baseUrl:'',//必填，基础url，空闲窗口预先加载的url
-  // baseWindowConfig为创建窗体的初始参数，该参数与new BrowserWindow参数相同
-  baseWindowConfig: {
-    // frame: false,
-    // transparent: false,
-    // bgColor:'#fff'
-  },
-  router:'',//选填 vue-router
-  freeWindowNum:''//空闲窗口数量
+//项目中使用
+import Vue from 'vue'
+import router from './router'
+
+const electron = require('electron');
+const winUtil = require('electron-window-util');
+
+let baseUrl = electron.remote.getGlobal('baseUrl');
+
+let win = new winUtil({
+  baseUrl: baseUrl,
+  router: router
 });
-```
-#### 打开新窗口
-
-```
-/** 支持参数
- * width 窗口宽度
- * height 窗口高度
- * x 窗口x坐标
- * y 窗口y坐标
- * resizable 是否可调节大小
- * movable 是否可移动
- * minimizable 是否可最小化
- * maximizable 是否可最大化
- * closable 是否可关闭
- * focusable 是否可聚焦
- * alwaysOnTop 是否置顶
- * fullscreen 是否全屏
- * fullscreenable 是否可全屏
- * simpleFullscreen 
- * skipTaskbar 是否不在任务栏显示
- * kiosk 是否进入kiosk模式
- * title 窗口标题
- * icon 窗口图标
- * opacity 窗口透明度
- *
- * windowConfig：{} //其他的一些配置
- */
-  let res=await this.$Win.openWin({
-          width: 200,
-          height: 200,
-          x: 0,
-          y: 0,
-          windowConfig: {
-            router: '/landing',//如果使用路由，则在此处填写新窗口的路由
-            name: 'hover',//窗口名称
-            data: '鼠标悬浮',//往新窗口传递的数据
-            animation: { //打开新窗口时的动画
-              fromConfig: { //动画开始时的配置
-                // x: 0, //动画开始时的窗口x坐标
-                // y: 0, //动画开始时的窗口y坐标
-                // width: 0, //动画开始时的窗口宽度
-                // height: 0, //动画开始时的窗口高度
-                // opacity: 0, //动画开始时的窗口透明度
-              }, 
-              time: 1000, // 动画持续时间
-              graphs: 'Quartic.InOut' // 动画过度曲线
-            },
-            //time:1000, //窗口自动关闭时间，默认不关闭
-          }
-        });
-    console.log(res);//此res为该打开窗口关闭时传来的数据
-```
-
-#### 关闭窗口
-```
-let pama={
-    name:'', //需要关闭窗口的name
-    id:'', //需要关闭窗口的id
-    //id和name,二选一，若都没有则关闭调用此方法的窗口
-    data:'窗口关闭时返回的数据',//窗口关闭时返回的数据
-}
-this.$Win.closeWin(pama);
-```
-
-#### 获取打开窗口时传递的数据
-```
-this.$Win.getParameter();
-```
-
-####  判断窗口是否打开
-```
-let isOpen=this.$Win.isOpen("win1");
-//true 已打开，false未打开
+Vue.prototype.$Win = win;
 ```
 
 
-####  窗口监听事件
-```
-  this.$Win.on('_sendMsg', (data, winInfo)=>{})
-  //data，对方发来的数据
-  //winInfo，发送消息的窗口信息
-```
 
-####  窗口发送事件
-```
-  this.$Win.send('_sendMsg', {
-           id: '',//接收窗口的id
-           name: winName,//接收窗口的name
-           //若id和name都不存在，则发送给除了自己的所有窗口
-           data: this.msg,//发送的数据
-         });
-```
-####  窗口注销事件
-貌似有点问题，注销不了
-```
-  this.$Win.off(eventName, listener);
-  this.$Win.removeListener(eventName, listener);
-  this.$Win.removeAllListeners(eventName);
-```
+###  ``new winUtil(option)``  
+* ``option`` Object  
+    * ``baseUrl`` String 空闲窗口预加载地址
+    * ``baseWindowConfig`` Object 基本的窗口配置，与electron的``new BrowserWindow()``是参数一致
+    * ``router`` vueRouter vue-router
+    * ``freeWindowNum`` number 预备空闲窗口个数
 
+
+#  方法
+``渲染进程`` 具有以下方法
+
+###  ``win.openWin([option])``  
+* ``option`` Object(可选)  
+  *  ``width``  number
+  *  ``height``  number
+  *  ``x``  number
+  *  ``y``  number
+  *  ``resizable``  boolean
+  *  ``movable``  boolean
+  *  ``minimizable``  boolean
+  *  ``maximizable``  boolean
+  *  ``closable``  boolean
+  *  ``focusable``  boolean
+  *  ``alwaysOnTop``  boolean
+  *  ``fullscreen``  boolean
+  *  ``fullscreenable``  boolean
+  *  ``simpleFullscreen``  boolean
+  *  ``skipTaskbar``  boolean
+  *  ``kiosk``  boolean
+  *  ``title``  string
+  *  ``icon``  
+  *  ``opacity``  number
+  *  ``windowConfig``  object
+     *  ``router``  string|object vue路由，如``/my_route``,``{path:"/my_route"}``,``{name:"my_route"}``等
+     *  ``name``  string（可选） 若不存在可打开N个，若存在只能打开一个
+     *  ``data``  any（可选） 窗口打开时传递过去的参数
+     *  ``animation`` object（可选） 动画配置
+        * ``fromConfig`` object（可选） 动画开始时的配置
+            * ``x``  number 动画开始时的x坐标
+            * ``y``  number 动画开始时的y坐标
+            * ``width``  number 动画开始时的窗口宽度
+            * ``height``  number 动画开始时的窗口高度
+            * ``opacity``  number  动画开始时的窗口透明度
+        * ``time``  number 动画过渡时间
+        * ``graphs``  string 动画过渡曲线
+     *  ``time``  number 窗口自动关闭时间，为0或undefined时不关闭
+  
+打开一个新窗口，如果没有name直接打开一个新窗口，如果有name，则判断是否有此name的窗口存在，有就激活该窗口
+
+
+###  ``win.closeWin([option|winName])``  
+
+*  ``option``  object（可选） 
+    * ``name``  要关闭窗口的name
+    * ``id``  要关闭窗口的id，若既没有name也没有id，则关闭调用此方法的窗口  
+    ~~ * ``data``  关闭窗口时回传的数据，暂不可用~~
+    
+  *  ``winName`` string（可选） 窗口的name
+  
+关闭窗口  
+
+
+
+###  ``win.isOpen([winName])``  
+*  ``winName``  
+
+返回``Boolean``类型-如果窗口已打开返回``true``，其余情况返回``false``  
+
+
+
+###  ``win.on(channel,listener)``  
+*  ``channel``  String
+*  ``listener``  Function
+
+监听``channel``，当接收到新的消息时 ``listener`` 会以 ``listener(data, winInfo)`` 的形式被调用。  
+
+
+
+###  ``win.send(channel,sendMsg)``  
+*  ``channel``  String
+*  ``sendMsg``  Object
+    * ``id`` 接收消息窗口的id
+    * ``name`` 接收消息窗口的name，若id和name都没有，则发给所有窗口
+    * ``data`` 
+
+通过 ``channel`` 发送异步消息到主进程，可以携带任意参数。 在内部，参数会被序列化为 ``JSON``，因此参数对象上的函数和原型链不会被发送。
+
+
+###  ``win.off(channel,listener)``  
+*  ``channel``  String  
+*  ``listener``  Function  
+
+为特定的 ``channel`` 从监听队列中删除特定的 ``listener`` 监听者.
+
+###  ``win.removeListener(channel,listener)``  
+*  ``channel``  String  
+*  ``listener``  Function  
+
+为特定的 ``channel`` 从监听队列中删除特定的 ``listener`` 监听者.
+
+###  ``win.removeAllListeners(channel)``  
+*  ``channel``  String  
+
+移除所有的监听器，当指定 ``channel`` 时只移除与其相关的所有监听器。
+
+以上三个貌似有点问题，注销不了
+
+#  属性  
+
+``渲染进程`` 具有以下属性
+
+###  ``win.parameter``  
+
+获取打开窗口时传递的数据  
+
+###  ``win.winInfo``  
+
+窗口的信息，包括坐标位置和宽高  
+
+###  ``win.screenInfo``  
+
+屏幕信息  

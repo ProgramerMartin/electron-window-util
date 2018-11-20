@@ -1,8 +1,8 @@
 const electron = require('electron');
-const util = require('./util');
+const util = require('../util/util');
 const {BrowserWindow, screen} = electron;
 
-class windowUtil {
+class mainProcess {
   constructor(config) {
 
     this.freeWindowNum = config.freeWindowNum || 1;
@@ -27,11 +27,44 @@ class windowUtil {
 
 
     // 单例模式
-    if (windowUtil.prototype.__Instance === undefined) {
-      windowUtil.prototype.__Instance = this;
+    if (mainProcess.prototype.__Instance === undefined) {
+      mainProcess.prototype.__Instance = this;
       this.checkFreeWindow();
     }
-    return windowUtil.prototype.__Instance;
+    return mainProcess.prototype.__Instance;
+  }
+
+  openWin(option) {
+    option = option || {};
+    option.windowConfig = option.windowConfig || {animation: {}};
+    option.windowConfig.fromWinId = "";
+
+    let win = this.getFreeWindow(option);
+    let winId = win.id;
+    if (option.windowConfig.time) {
+      setTimeout(() => {
+        this.closeWinByWinId(winId);
+      }, option.windowConfig.time);
+    }
+    win.show();
+
+    return win;
+  }
+
+  closeWin(option = {}) {
+    let winInfo;
+    if (option.id) {
+      winInfo = this.getWinInfoById(option.id);
+    } else if (option.name) {
+      winInfo = this.getWinInfoByName(option.name);
+    }
+
+    if (winInfo) {
+      //发送消息
+      winInfo.backMsg = option.data;
+      //关闭窗口
+      this.closeWinByWinId(winInfo.id)
+    }
   }
 
   updateWindowList(arg) {
@@ -80,11 +113,11 @@ class windowUtil {
 
     win.on('closed', () => {// 先push出数组
 
-      let backMsg = '';
-      let winInfo = this.getWinInfoById(winId);
-      if (winInfo) backMsg = winInfo.backMsg;
+      // let backMsg = '';
+      // let winInfo = this.getWinInfoById(winId);
+      // if (winInfo) backMsg = winInfo.backMsg;
 
-      this.sendById(winInfo.fromWinId, `_closed${winId}`, backMsg);
+      // this.sendById(winInfo.fromWinId, `_closed${winId}`, backMsg);
 
       this._windowList = this._windowList.filter(item => item.id !== winId);
     });
@@ -106,14 +139,14 @@ class windowUtil {
         if (freeWindowInfo.reuse) {
           if (freeWindowInfo.isUse) {
             if (option.windowConfig.reload) {
-              this.windowRouterChange(freeWindow, option.windowConfig)
+              this.windowRouterChange(freeWindow, option.windowConfig);
               this.refreshFreeWindowInfo(freeWindowInfo, option)
             }
           } else {
             // 路由跳转
-            this.windowRouterChange(freeWindow, option.windowConfig)
+            this.windowRouterChange(freeWindow, option.windowConfig);
             // 窗口基础状态
-            this.setWindowConfig(option, freeWindow)
+            this.setWindowConfig(option, freeWindow);
             // 如果有动画生成动画后状态
             if (option.windowConfig.animation) {
               this.animation(freeWindow, this.getAnimationConfig(option))
@@ -123,23 +156,23 @@ class windowUtil {
           }
         } else {
           if (option.windowConfig.reload) {
-            this.windowRouterChange(freeWindow, option.windowConfig)
+            this.windowRouterChange(freeWindow, option.windowConfig);
             this.refreshFreeWindowInfo(freeWindowInfo, option)
           }
         }
       } else {
-        freeWindowInfo = this._getFreeWindow()
-        freeWindow = BrowserWindow.fromId(freeWindowInfo.id)
+        freeWindowInfo = this._getFreeWindow();
+        freeWindow = BrowserWindow.fromId(freeWindowInfo.id);
         // 窗口基础状态
-        this.setWindowConfig(option, freeWindow)
+        this.setWindowConfig(option, freeWindow);
         // 如果有动画生成动画后状态
         if (option.windowConfig.animation) {
           this.animation(freeWindow, this.getAnimationConfig(option))
         }
         // 路由跳转
-        this.windowRouterChange(freeWindow, option.windowConfig)
+        this.windowRouterChange(freeWindow, option.windowConfig);
         // 更新队列
-        this.refreshFreeWindowInfo(freeWindowInfo, option)
+        this.refreshFreeWindowInfo(freeWindowInfo, option);
         this.checkFreeWindow()
       }
     } else {
@@ -147,13 +180,13 @@ class windowUtil {
       freeWindowInfo = this._getFreeWindow();
       freeWindow = BrowserWindow.fromId(freeWindowInfo.id);
       // 窗口基础状态
-      this.setWindowConfig(option, freeWindow)
+      this.setWindowConfig(option, freeWindow);
       // 如果有动画生成动画后状态
       if (option.windowConfig.animation) {
         this.animation(freeWindow, this.getAnimationConfig(option))
       }
       // 路由跳转
-      this.windowRouterChange(freeWindow, option.windowConfig)
+      this.windowRouterChange(freeWindow, option.windowConfig);
       // 更新队列
       this.refreshFreeWindowInfo(freeWindowInfo, option);
       this.checkFreeWindow();
@@ -264,11 +297,11 @@ class windowUtil {
         height: option.height !== undefined ? option.height : height,
         opacity: option.opacity !== undefined ? option.opacity : 1,
       }
-    }
+    };
     config.fromConfig = {
       ...config.toConfig,
       ...fromConfig,
-    }
+    };
     config.time = animation.time || 1000;
     config.graphs = animation.graphs || 'Exponential.Out';
 
@@ -280,7 +313,7 @@ class windowUtil {
  */
   _getFreeWindow() {
     // 没有使用的窗口并且不是复用的窗口
-    let winInfo = this._windowList.find(row => row.isUse === false && !row.reuse)
+    let winInfo = this._windowList.find(row => row.isUse === false && !row.reuse);
     if (!winInfo) {
       let win = this.creatFreeWindow();
       return this._windowList.find(row => row.id === win.id);
@@ -292,13 +325,13 @@ class windowUtil {
  * @desc 更新队列
  */
   refreshFreeWindowInfo(freeWindowInfo, option) {
-    freeWindowInfo.url = option.windowConfig.url
-    freeWindowInfo.router = option.windowConfig.router
-    freeWindowInfo.sendMsg = option.windowConfig.data
-    freeWindowInfo.isUse = true
-    freeWindowInfo.name = option.windowConfig.name
-    freeWindowInfo.fromWinId = option.windowConfig.fromWinId
-    freeWindowInfo.reuse = option.windowConfig.reuse || false
+    freeWindowInfo.url = option.windowConfig.url;
+    freeWindowInfo.router = option.windowConfig.router;
+    freeWindowInfo.sendMsg = option.windowConfig.data;
+    freeWindowInfo.isUse = true;
+    freeWindowInfo.name = option.windowConfig.name;
+    freeWindowInfo.fromWinId = option.windowConfig.fromWinId;
+    freeWindowInfo.reuse = option.windowConfig.reuse || false;
     this.setUseWindow(freeWindowInfo)
   }
 
@@ -312,26 +345,26 @@ class windowUtil {
   }
 
   getWinByName(WinName) {
-    if (!WinName) return
+    if (!WinName) return;
     let winInfo = this._windowList.find(item => item.name === WinName);
     if (winInfo) {
       return BrowserWindow.fromId(winInfo.id);
     }
-    return
+
   }
 
   getWinById(winId) {
-    if (!winId) return
+    if (!winId) return;
     return BrowserWindow.fromId(winId);
   }
 
   getWinInfoByName(WinName) {
-    if (!WinName) return
+    if (!WinName) return;
     return this._windowList.find(item => item.name === WinName);
   }
 
   getWinInfoById(winId) {
-    if (!winId) return
+    if (!winId) return;
     return this._windowList.find(item => item.id === winId);
   }
 
@@ -426,8 +459,8 @@ class windowUtil {
     else this.exitWin(win);
   }
 
-  isOpen(winName){
-    if (!winName) return false
+  isOpen(winName) {
+    if (!winName) return false;
     let winInfo = this.getWinInfoByName(winName);
     if (!winInfo) return false;
     return winInfo.isUse;
@@ -435,4 +468,4 @@ class windowUtil {
 }
 
 
-module.exports = windowUtil;
+module.exports = mainProcess;

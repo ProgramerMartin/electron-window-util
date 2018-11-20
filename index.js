@@ -6,9 +6,9 @@
  *
  * @type {Win}
  */
-if (process.type === 'browser') module.exports = require('./util/windowUtil');
+if (process.type === 'browser') module.exports = require('./src/mainProcess');
 // if (process.type === 'renderer') module.exports = require('./render');
-if (process.type === 'renderer') module.exports = require('./util/renderUtil');
+if (process.type === 'renderer') module.exports = require('./src/renderProcess');
 
 
 /**
