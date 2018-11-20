@@ -59,6 +59,8 @@ class mainProcess {
       winInfo = this.getWinInfoByName(option.name);
     }
 
+    console.log(winInfo)
+
     if (winInfo) {
       //发送消息
       winInfo.backMsg = option.data;
@@ -431,7 +433,7 @@ class mainProcess {
    */
   hideWin(win) {
     let winInfo = this.getWinInfoById(win.id);
-    this.sendById(winInfo.fromWinId, `_closed${win.id}`, '');
+    // this.sendById(winInfo.fromWinId, `_closed${win.id}`, '');
     win.hide();
   }
 
